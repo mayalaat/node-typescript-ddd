@@ -1,9 +1,9 @@
 {
-  "name": "typescript-ddd-skeleton",
-  "version": "1.0.0",
+  "name": "node-typescript-ddd",
+  "version": "0.0.1",
   "description": "",
   "repository": {
-    "url": "https://github.com/CodelyTV/typescript-ddd-skeleton"
+    "url": "https://github.com/mayalaat/node-typescript-ddd"
   },
   "license": "",
   "engines": {
