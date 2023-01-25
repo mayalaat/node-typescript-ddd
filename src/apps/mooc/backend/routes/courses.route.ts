@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 import container from '../dependency-injection';
 
 export const register = (router: Router) => {
