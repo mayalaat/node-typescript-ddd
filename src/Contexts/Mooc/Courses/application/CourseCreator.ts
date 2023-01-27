@@ -2,6 +2,8 @@ import { Course } from '../domain/Course';
 import { CourseRepository } from '../domain/CourseRepository';
 import { CourseCreatorRequest } from './CourseCreatorRequest';
 import { CourseId } from '../../Shared/domain/Courses/CourseId';
+import { CourseName } from '../domain/CourseName';
+import { CourseDuration } from '../domain/CourseDuration';
 
 export class CourseCreator {
   private repository: CourseRepository;
@@ -11,7 +13,11 @@ export class CourseCreator {
   }
 
   async run(request: CourseCreatorRequest): Promise<void> {
-    const course = new Course(new CourseId(request.id), request.name, request.duration);
+    const course = new Course(
+      new CourseId(request.id),
+      new CourseName(request.name),
+      new CourseDuration(request.duration)
+    );
 
     return this.repository.save(course);
   }
