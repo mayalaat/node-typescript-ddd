@@ -1,9 +1,7 @@
 import { CourseCreator } from '../../../../../src/Contexts/Mooc/Courses/application/CourseCreator';
-import { Course } from '../../../../../src/Contexts/Mooc/Courses/domain/Course';
 import { CourseRepositoryMock } from '../__mocks__/CourseRepositoryMock';
-import { CourseId } from '../../../../../src/Contexts/Mooc/Shared/domain/Courses/CourseId';
-import { CourseName } from '../../../../../src/Contexts/Mooc/Courses/domain/CourseName';
-import { CourseDuration } from '../../../../../src/Contexts/Mooc/Courses/domain/CourseDuration';
+import { CourseCreatorRequestMother } from './CourseCreatorRequestMother';
+import { CourseMother } from '../domain/CourseMother';
 import { CourseNameLengthExceeded } from '../../../../../src/Contexts/Mooc/Courses/domain/CourseNameLengthExceeded';
 
 let repository: CourseRepositoryMock;
@@ -16,26 +14,22 @@ beforeEach(() => {
 
 describe('CourseCreator', () => {
   it('should create a valid course', async () => {
-    const id = '99c47fb7-9f59-412c-9da9-85ce494615b8';
-    const name = 'some-name';
-    const duration = 'some-duration';
+    const request = CourseCreatorRequestMother.random();
 
-    const course = new Course(new CourseId(id), new CourseName(name), new CourseDuration(duration));
+    const course = CourseMother.fromRequest(request);
 
-    await creator.run({id: id, name, duration});
+    await creator.run(request);
 
     repository.assertSaveHaveBeenCalledWith(course);
   });
 
   it('should throw error if course name length is exceeded', () => {
-    const id = '99c47fb7-9f59-412c-9da9-85ce494615b8';
-    const name = 'some-name'.repeat(30);
-    const duration = 'some-duration';
-
     expect(() => {
-      const course = new Course(new CourseId(id), new CourseName(name), new CourseDuration(duration));
+      const request = CourseCreatorRequestMother.invalidRequest();
 
-      creator.run({id: id, name, duration});
+      const course = CourseMother.fromRequest(request);
+
+      creator.run(request);
 
       repository.assertSaveHaveBeenCalledWith(course);
     }).toThrow(CourseNameLengthExceeded);
