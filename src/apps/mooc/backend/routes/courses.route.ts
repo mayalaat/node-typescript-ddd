@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import container from '../dependency-injection';
+import container from '../config/dependency-injection';
 import { body } from 'express-validator';
 import { validateReqSchema } from './index';
 
