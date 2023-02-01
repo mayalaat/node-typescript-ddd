@@ -1,6 +1,6 @@
 name: Node CI
 
-on: [push]
+on: [ push ]
 
 jobs:
   build:
@@ -8,13 +8,18 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 15.x]
+        node-version: [ 14.x, 15.x ]
+        mongodb-version: [ 4.0, 4.2 ]
     steps:
       - uses: actions/checkout@v1
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Launch MongoDB
+        uses: wbari/start-mongoDB@v0.2
+        with:
+          mongoDBVersion: ${{ matrix.mongodb-version }}
       - name: npm install
         run: |
           npm install
