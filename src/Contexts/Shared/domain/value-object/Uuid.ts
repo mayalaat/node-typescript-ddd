@@ -1,4 +1,5 @@
 import validate from 'uuid-validate';
+import { v4 as uuid } from 'uuid';
 import { InvalidArgumentError } from './InvalidArgumentError';
 
 export class Uuid {
@@ -8,6 +9,10 @@ export class Uuid {
     this.ensureIsValidUuid(value);
 
     this.value = value;
+  }
+
+  static random(): Uuid {
+    return new Uuid(uuid());
   }
 
   toString(): string {

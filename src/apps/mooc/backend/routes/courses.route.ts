@@ -9,8 +9,12 @@ export const register = (router: Router) => {
     body('name').exists().isString(),
     body('duration').exists().isString()
   ];
+
   const coursePutController = container.get('Apps.mooc.controllers.CoursePutController');
   router.put('/courses/:id', requestSchema, validateReqSchema, (req: Request, res: Response) =>
     coursePutController.run(req, res)
   );
+
+  const coursesCounterGetController = container.get('Apps.mooc.controllers.CoursesCounterGetController');
+  router.get('/courses-counter', coursesCounterGetController.run.bind(coursesCounterGetController));
 };
