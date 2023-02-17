@@ -1,0 +1,7 @@
+services:
+
+  Mooc.shared.ConnectionManager:
+    factory:
+      class: ../../../../../../Contexts/Shared/infrastructure/persistence/mongo/MongoClientFactory
+      method: 'createClient'
+    arguments: [ 'mooc' ]

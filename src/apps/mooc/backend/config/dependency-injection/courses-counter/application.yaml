@@ -1,0 +1,9 @@
+services:
+
+  Mooc.coursesCounter.CoursesCounterFinder:
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/application/Find/CoursesCounterFinder
+    arguments: [ "@Mooc.coursesCounter.CoursesCounterRepository" ]
+
+  Mooc.coursesCounter.CoursesCounterRepository:
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/infrastructure/InMemoryCoursesCounterRepository
+    arguments: [ ]
