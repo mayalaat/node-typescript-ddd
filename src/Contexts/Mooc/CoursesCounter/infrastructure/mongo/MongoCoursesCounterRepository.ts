@@ -21,7 +21,7 @@ export class MongoCoursesCounterRepository extends MongoRepository<CoursesCounte
     return document ? CoursesCounter.fromPrimitives({ ...document, id: document._id }) : null;
   }
 
-  protected collectionName(): string {
+  protected moduleName(): string {
     return 'coursesCounter';
   }
 }

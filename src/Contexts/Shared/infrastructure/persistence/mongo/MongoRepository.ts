@@ -4,14 +4,14 @@ import { AggregateRoot } from '../../../domain/AggregateRoot';
 export abstract class MongoRepository<T extends AggregateRoot> {
   constructor(private _client: Promise<MongoClient>) {}
 
+  protected abstract moduleName(): string;
+
   protected client(): Promise<MongoClient> {
     return this._client;
   }
 
-  protected abstract collectionName(): string;
-
   protected async collection(): Promise<Collection> {
-    return (await this._client).db().collection(this.collectionName());
+    return (await this._client).db().collection(this.moduleName());
   }
 
   protected async persist(id: string, aggregateRoot: T): Promise<void> {
