@@ -31,9 +31,9 @@ export class CourseCreatedDomainEvent extends DomainEvent {
 
   static fromPrimitives(params: {
     aggregateId: string;
-    attributes: CreateCourseDomainEventAttributes;
     eventId: string;
     occurredOn: Date;
+    attributes: CreateCourseDomainEventAttributes;
   }): DomainEvent {
     const { aggregateId, attributes, occurredOn, eventId } = params;
     return new CourseCreatedDomainEvent({
