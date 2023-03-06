@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import * as http from 'http';
 import httpStatus from 'http-status';
 import { registerRoutes } from './routes';
+import { registerSubscribers } from './subscribers';
 
 export class Server {
   private express: express.Express;
@@ -28,6 +29,7 @@ export class Server {
     this.express.use(router);
 
     registerRoutes(router);
+    registerSubscribers();
 
     router.use((err: Error, req: Request, res: Response, next: Function) => {
       console.log(err);

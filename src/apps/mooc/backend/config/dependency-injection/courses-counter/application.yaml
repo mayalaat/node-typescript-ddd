@@ -4,6 +4,20 @@ services:
     class: ../../../../../../Contexts/Mooc/CoursesCounter/application/Find/CoursesCounterFinder
     arguments: [ "@Mooc.coursesCounter.CoursesCounterRepository" ]
 
+  Mooc.coursesCounter.CoursesCounterIncrementer:
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/application/Increment/CoursesCounterIncrementer
+    arguments: [
+      "@Mooc.coursesCounter.CoursesCounterRepository",
+      "@Mooc.shared.EventBus"
+    ]
+
   Mooc.coursesCounter.CoursesCounterRepository:
-    class: ../../../../../../Contexts/Mooc/CoursesCounter/infrastructure/InMemoryCoursesCounterRepository
-    arguments: [ ]
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/infrastructure/mongo/MongoCoursesCounterRepository
+    arguments: [ "@Mooc.shared.ConnectionManager" ]
+
+  Mooc.coursesCounter.IncrementCoursesCounterOnCourseCreated:
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/application/Increment/IncrementCoursesCounterOnCourseCreated
+    arguments: [ "@Mooc.coursesCounter.CoursesCounterIncrementer" ]
+    tags:
+      - { name: 'domainEventSubscriber' }
+
