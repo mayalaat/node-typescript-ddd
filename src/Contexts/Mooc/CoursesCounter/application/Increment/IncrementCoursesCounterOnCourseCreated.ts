@@ -2,6 +2,7 @@ import { DomainEventSubscriber } from '../../../../Shared/domain/DomainEventSubs
 import { CourseCreatedDomainEvent } from '../../../Courses/domain/CourseCreatedDomainEvent';
 import { CoursesCounterIncrementer } from './CoursesCounterIncrementer';
 import { CourseId } from '../../../Shared/domain/Courses/CourseId';
+import { DomainEventClass } from '../../../../Shared/domain/DomainEvent';
 
 export class IncrementCoursesCounterOnCourseCreated implements DomainEventSubscriber<CourseCreatedDomainEvent> {
   constructor(private incrementer: CoursesCounterIncrementer) {}
@@ -10,7 +11,7 @@ export class IncrementCoursesCounterOnCourseCreated implements DomainEventSubscr
     await this.incrementer.run(new CourseId(domainEvent.aggregateId));
   }
 
-  subscribedTo(): Array<string> {
-    return [CourseCreatedDomainEvent.EVENT_NAME];
+  subscribedTo(): Array<DomainEventClass> {
+    return [CourseCreatedDomainEvent];
   }
 }

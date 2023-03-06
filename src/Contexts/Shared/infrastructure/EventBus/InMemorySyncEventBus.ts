@@ -27,12 +27,15 @@ export class InMemorySyncEventBus implements EventBus {
   }
 
   addSubscribers(subscribers: Array<DomainEventSubscriber<DomainEvent>>) {
-    subscribers.map(subscriber => subscriber.subscribedTo().map(event => this.subscribe(event, subscriber)));
+    subscribers.map(subscriber => subscriber.subscribedTo().map(event => this.subscribe(event.EVENT_NAME, subscriber)));
   }
 
   private subscribe(topic: string, subscriber: DomainEventSubscriber<DomainEvent>): void {
     const currentSubscriptions = this.subscriptions.get(topic);
-    const subscription = { boundedCallback: subscriber.on.bind(subscriber), originalCallback: subscriber.on };
+    const subscription = {
+      boundedCallback: subscriber.on.bind(subscriber),
+      originalCallback: subscriber.on
+    };
     if (currentSubscriptions) {
       currentSubscriptions.push(subscription);
     } else {

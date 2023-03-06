@@ -1,6 +1,6 @@
 import { InMemoryAsyncEventBus } from '../../../../src/Contexts/Shared/infrastructure/EventBus/InMemoryAsyncEventBus';
 import { Uuid } from '../../../../src/Contexts/Shared/domain/value-object/Uuid';
-import { DomainEvent } from '../../../../src/Contexts/Shared/domain/DomainEvent';
+import { DomainEvent, DomainEventClass } from '../../../../src/Contexts/Shared/domain/DomainEvent';
 import { DomainEventSubscriber } from '../../../../src/Contexts/Shared/domain/DomainEventSubscriber';
 
 describe('InMemoryAsyncEventBus', () => {
@@ -35,8 +35,8 @@ class DummyEvent extends DomainEvent {
 }
 
 class DomainEventSubscriberDummy implements DomainEventSubscriber<DummyEvent> {
-  subscribedTo(): string[] {
-    return [DummyEvent.EVENT_NAME];
+  subscribedTo(): DomainEventClass[] {
+    return [DummyEvent];
   }
 
   async on(domainEvent: DummyEvent) {
