@@ -9,7 +9,7 @@ import { CourseDuration } from '../../../../../src/Contexts/Mooc/Courses/domain/
 
 export class CourseMother {
   static create(id: CourseId, name: CourseName, duration: CourseDuration): Course {
-    return new Course(id, name, duration);
+    return Course.create(id, name, duration);
   }
 
   static fromRequest(request: CourseCreatorRequest): Course {

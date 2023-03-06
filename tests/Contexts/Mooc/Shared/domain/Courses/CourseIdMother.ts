@@ -6,6 +6,10 @@ export class CourseIdMother {
     return new CourseId(value);
   }
 
+  static creator() {
+    return () => CourseIdMother.random();
+  }
+
   static random() {
     return this.create(UuidMother.random());
   }

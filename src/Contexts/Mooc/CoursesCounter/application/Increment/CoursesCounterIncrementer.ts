@@ -2,9 +2,10 @@ import { CourseId } from '../../../Shared/domain/Courses/CourseId';
 import { CoursesCounterRepository } from '../../domain/CoursesCounterRepository';
 import { CoursesCounter } from '../../domain/CoursesCounter';
 import { CoursesCounterId } from '../../domain/CoursesCounterId';
+import { EventBus } from '../../../../Shared/domain/EventBus';
 
 export class CoursesCounterIncrementer {
-  constructor(private repository: CoursesCounterRepository) {}
+  constructor(private repository: CoursesCounterRepository, private bus: EventBus) {}
 
   async run(courseId: CourseId) {
     const counter = (await this.repository.search()) || this.initializeCounter();
@@ -13,6 +14,7 @@ export class CoursesCounterIncrementer {
       counter.increment(courseId);
 
       await this.repository.save(counter);
+      this.bus.publish(counter.pullDomainEvents());
     }
   }
 

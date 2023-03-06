@@ -7,7 +7,7 @@ export class CoursesCounterGetController implements Controller {
   constructor(private coursesCounterFinder: CoursesCounterFinder) {}
 
   async run(req: Request, res: Response): Promise<void> {
-    const counter = this.coursesCounterFinder.run();
+    const counter = await this.coursesCounterFinder.run();
 
     res.status(httpStatus.OK).send(counter);
   }
