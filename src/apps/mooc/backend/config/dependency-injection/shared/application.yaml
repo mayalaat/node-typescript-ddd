@@ -9,3 +9,7 @@ services:
   Mooc.shared.EventBus:
     class: ../../../../../../Contexts/Shared/infrastructure/EventBus/InMemoryAsyncEventBus
     arguments: [ ]
+
+  Mooc.shared.EventBus.DomainEventDeserializer:
+    class: ../../../../../../Contexts/Shared/infrastructure/EventBus/DomainEventDeserializer
+    arguments: [ '@Mooc.shared.EventBus.DomainEventMapping' ]

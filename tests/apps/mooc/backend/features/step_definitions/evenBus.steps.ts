@@ -1,18 +1,25 @@
 import { Given } from 'cucumber';
 import container from '../../../../../../src/apps/mooc/backend/config/dependency-injection';
 import { EventBus } from '../../../../../../src/Contexts/Shared/domain/EventBus';
-import { CourseCreatedDomainEvent } from '../../../../../../src/Contexts/Mooc/Courses/domain/CourseCreatedDomainEvent';
+import { DomainEventSubscribers } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventSubscribers';
+import { DomainEventDeserializer } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventDeserializer';
+
+const eventBus = container.get('Mooc.shared.EventBus') as EventBus;
+const deserializer = buildDeserializer();
 
 Given('I send an event to the event bus:', async (event: any) => {
-  const eventBus = container.get('Mooc.shared.EventBus') as EventBus;
-  const jsonEvent = JSON.parse(event).data;
-
-  const domainEvent = CourseCreatedDomainEvent.fromPrimitives({
-    aggregateId: jsonEvent.attributes.id,
-    attributes: jsonEvent.attributes,
-    eventId: jsonEvent.id,
-    occurredOn: jsonEvent.occurredOn
-  });
+  const domainEvent = deserializer.deserialize(event);
 
   await eventBus.publish([domainEvent]);
+  await wait(100);
 });
+
+function buildDeserializer() {
+  const subscribers = DomainEventSubscribers.from(container);
+
+  return DomainEventDeserializer.configure(subscribers);
+}
+
+function wait(milliseconds: number) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
