@@ -1,6 +1,6 @@
-import { EventBus } from '../../domain/EventBus';
-import { DomainEvent } from '../../domain/DomainEvent';
-import { DomainEventSubscriber } from '../../domain/DomainEventSubscriber';
+import { EventBus } from '../../../domain/EventBus';
+import { DomainEvent } from '../../../domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../domain/DomainEventSubscriber';
 
 type Subscription = {
   boundedCallback: Function;

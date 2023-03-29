@@ -7,7 +7,7 @@ services:
     arguments: [ 'mooc' ]
 
   Mooc.shared.EventBus:
-    class: ../../../../../../Contexts/Shared/infrastructure/EventBus/InMemoryAsyncEventBus
+    class: ../../../../../../Contexts/Shared/infrastructure/EventBus/InMemory/InMemoryAsyncEventBus
     arguments: [ ]
 
   Mooc.shared.EventBus.DomainEventDeserializer:

@@ -3,7 +3,7 @@ imports:
 
 services:
   Mooc.shared.EventBus:
-    class: ../../../../../Contexts/Shared/infrastructure/EventBus/InMemorySyncEventBus
+    class: ../../../../../Contexts/Shared/infrastructure/EventBus/InMemory/InMemorySyncEventBus
     arguments: [ ]
 
   Mooc.EnvironmentArranger:

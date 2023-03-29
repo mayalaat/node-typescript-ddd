@@ -1,5 +1,5 @@
-import { DomainEvent } from '../../domain/DomainEvent';
-import { DomainEventSubscriber } from '../../domain/DomainEventSubscriber';
+import { DomainEvent } from '../../../domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../domain/DomainEventSubscriber';
 import { EventEmitter } from 'events';
 
 export class EventEmitterBus extends EventEmitter {

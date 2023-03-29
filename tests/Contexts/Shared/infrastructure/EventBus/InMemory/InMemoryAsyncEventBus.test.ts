@@ -1,7 +1,7 @@
-import { InMemoryAsyncEventBus } from '../../../../src/Contexts/Shared/infrastructure/EventBus/InMemoryAsyncEventBus';
-import { Uuid } from '../../../../src/Contexts/Shared/domain/value-object/Uuid';
-import { DomainEvent, DomainEventClass } from '../../../../src/Contexts/Shared/domain/DomainEvent';
-import { DomainEventSubscriber } from '../../../../src/Contexts/Shared/domain/DomainEventSubscriber';
+import { InMemoryAsyncEventBus } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/InMemory/InMemoryAsyncEventBus';
+import { Uuid } from '../../../../../../src/Contexts/Shared/domain/value-object/Uuid';
+import { DomainEvent, DomainEventClass } from '../../../../../../src/Contexts/Shared/domain/DomainEvent';
+import { DomainEventSubscriber } from '../../../../../../src/Contexts/Shared/domain/DomainEventSubscriber';
 
 describe('InMemoryAsyncEventBus', () => {
   let subscriber: DomainEventSubscriberDummy;
