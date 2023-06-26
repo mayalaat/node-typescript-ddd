@@ -1,20 +1,6 @@
 import amqplib from 'amqplib';
-
-export type ConnectionSettings = {
-  username: string;
-  password: string;
-  vhost: string;
-  connection: {
-    secure: boolean;
-    hostname: string;
-    port: number;
-  };
-};
-
-export type ExchangeSetting = {
-  name: string;
-  type?: string;
-};
+import { ConnectionSettings } from './ConnectionSettings';
+import { ExchangeSetting } from './ExchangeSetting';
 
 export class RabbitMQConnection {
   protected connectionSettings: ConnectionSettings;
@@ -31,6 +17,25 @@ export class RabbitMQConnection {
     this.channel = await this.amqpChannel();
   }
 
+  async exchange(params: { name: string }) {
+    return this.channel?.assertExchange(params.name, 'topic', { durable: true });
+  }
+
+  async queue(params: { exchange: string; name: string; routingKeys: string[] }) {
+    const durable = true;
+    const exclusive = false;
+    const autoDelete = false;
+
+    await this.channel?.assertQueue(params.name, {
+      exclusive,
+      durable,
+      autoDelete
+    });
+    for (const routingKey of params.routingKeys) {
+      await this.channel!.bindQueue(params.name, params.exchange, routingKey);
+    }
+  }
+
   async publish(params: {
     exchange: string;
     routingKey: string;
@@ -43,6 +48,10 @@ export class RabbitMQConnection {
         error ? reject(error) : resolve()
       );
     });
+  }
+
+  async deleteQueue(queue: string) {
+    return await this.channel!.deleteQueue(queue);
   }
 
   async close() {

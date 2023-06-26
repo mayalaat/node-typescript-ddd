@@ -5,9 +5,14 @@ import { DomainEventFailoverPublisherMother } from '../__mother__/DomainEventFai
 import { RabbitMQEventBus } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQEventBus';
 import { CourseCreatedDomainEventMother } from '../../../../Mooc/Courses/domain/CourseCreatedDomainEventMother';
 import { RabbitMQConnection } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConnection';
+import { DomainEventDummyMother } from '../__mocks__/DomainEventDummy';
+import { DomainEventFailoverPublisher } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventFailoverPublisher';
+import { RabbitMQConfigurer } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConfigurer';
+import { DomainEventSubscriberDummy } from '../__mocks__/DomainEventSubscriberDummy';
+import { RabbitMQqueueFormatter } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQqueueFormatter';
 
 describe('RabbitMQEventBus test', () => {
-  const exchange = 'amq.topic';
+  const exchange = 'domain_events';
   let arranger: MongoEnvironmentArranger;
 
   beforeAll(async () => {
@@ -37,12 +42,25 @@ describe('RabbitMQEventBus test', () => {
 
   describe('integration', () => {
     let connection: RabbitMQConnection;
+    let configurer: RabbitMQConfigurer;
+    let dummySubscriber: DomainEventSubscriberDummy;
+    let failoverPublisher: DomainEventFailoverPublisher;
+    const formatter = new RabbitMQqueueFormatter('mooc');
 
     beforeAll(async () => {
       connection = await RabbitMQConnectionMother.create();
+      failoverPublisher = DomainEventFailoverPublisherMother.create();
+
+      configurer = new RabbitMQConfigurer(connection, formatter);
+    });
+
+    beforeEach(async () => {
+      await arranger.arrange();
+      dummySubscriber = new DomainEventSubscriberDummy();
     });
 
     afterAll(async () => {
+      await cleanEnvironment();
       await connection.close();
     });
 
@@ -52,5 +70,18 @@ describe('RabbitMQEventBus test', () => {
 
       await eventBus.publish([CourseCreatedDomainEventMother.create()]);
     });
+
+    it('should publish events to RabbitMQ', async () => {
+      const eventBus = new RabbitMQEventBus({ failoverPublisher, connection, exchange });
+      const event = DomainEventDummyMother.random();
+
+      await configurer.configure({ exchange, subscribers: [dummySubscriber] });
+
+      await eventBus.publish([event]);
+    });
+
+    async function cleanEnvironment() {
+      await connection.deleteQueue(formatter.format(dummySubscriber.constructor.name));
+    }
   });
 });
