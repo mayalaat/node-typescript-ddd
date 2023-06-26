@@ -1,10 +1,15 @@
 services:
 
+  Mooc.Shared.MongoConfig:
+    factory:
+      class: ../../../../../../Contexts/Mooc/Shared/infrastructure/persistence/mongo/MongoConfigFactory
+      method: 'createConfig'
+
   Mooc.shared.ConnectionManager:
     factory:
       class: ../../../../../../Contexts/Shared/infrastructure/persistence/mongo/MongoClientFactory
       method: 'createClient'
-    arguments: [ 'mooc' ]
+    arguments: [ 'mooc',  '@Mooc.Shared.MongoConfig' ]
 
   Mooc.shared.EventBus:
     class: ../../../../../../Contexts/Shared/infrastructure/EventBus/InMemory/InMemoryAsyncEventBus
