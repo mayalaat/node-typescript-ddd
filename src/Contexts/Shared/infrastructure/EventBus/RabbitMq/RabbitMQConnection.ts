@@ -1,4 +1,4 @@
-import amqplib from 'amqplib';
+import amqplib, { ConsumeMessage } from 'amqplib';
 import { ConnectionSettings } from './ConnectionSettings';
 import { ExchangeSetting } from './ExchangeSetting';
 
@@ -57,6 +57,23 @@ export class RabbitMQConnection {
   async close() {
     await this.channel?.close();
     return this.connection?.close();
+  }
+
+  async consume(queue: string, onMessage: (message: ConsumeMessage) => {}) {
+    await this.channel!.consume(queue, (message: ConsumeMessage | null) => {
+      if (!message) {
+        return;
+      }
+      onMessage(message);
+    });
+  }
+
+  ack(message: ConsumeMessage) {
+    this.channel!.ack(message);
+  }
+
+  noAck(message: ConsumeMessage) {
+    this.channel!.nack(message);
   }
 
   private async amqpConnect() {

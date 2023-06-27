@@ -1,14 +1,8 @@
 import container from './config/dependency-injection';
-import { Definition } from 'node-dependency-injection';
-import { InMemoryAsyncEventBus } from '../../../Contexts/Shared/infrastructure/EventBus/InMemory/InMemoryAsyncEventBus';
-import { DomainEvent } from '../../../Contexts/Shared/domain/DomainEvent';
-import { DomainEventSubscriber } from '../../../Contexts/Shared/domain/DomainEventSubscriber';
+import { EventBus } from '../../../Contexts/Shared/domain/EventBus';
+import { DomainEventSubscribers } from '../../../Contexts/Shared/infrastructure/EventBus/DomainEventSubscribers';
 
 export function registerSubscribers() {
-  const eventBus = container.get('Mooc.shared.EventBus') as InMemoryAsyncEventBus;
-  const subscriberDefinitions = container.findTaggedServiceIds('domainEventSubscriber') as Map<String, Definition>;
-  const subscribers: Array<DomainEventSubscriber<DomainEvent>> = [];
-
-  subscriberDefinitions.forEach((value: any, key: any) => subscribers.push(container.get(key)));
-  eventBus.addSubscribers(subscribers);
+  const eventBus = container.get<EventBus>('Mooc.shared.EventBus');
+  eventBus.addSubscribers(DomainEventSubscribers.from(container));
 }

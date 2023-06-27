@@ -1,12 +1,12 @@
 import { DomainEvent } from '../../../domain/DomainEvent';
-import { DomainEventSubscriber } from '../../../domain/DomainEventSubscriber';
 import { EventBus } from '../../../domain/EventBus';
 import { EventEmitterBus } from './EventEmitterBus';
+import { DomainEventSubscribers } from '../DomainEventSubscribers';
 
 export class InMemoryAsyncEventBus implements EventBus {
   private bus: EventEmitterBus;
 
-  constructor(subscribers: Array<DomainEventSubscriber<DomainEvent>>) {
+  constructor(subscribers: DomainEventSubscribers) {
     this.bus = new EventEmitterBus(subscribers);
   }
 
@@ -14,7 +14,7 @@ export class InMemoryAsyncEventBus implements EventBus {
     this.bus.publish(events);
   }
 
-  addSubscribers(subscribers: Array<DomainEventSubscriber<DomainEvent>>) {
+  addSubscribers(subscribers: DomainEventSubscribers) {
     this.bus.registerSubscribers(subscribers);
   }
 }

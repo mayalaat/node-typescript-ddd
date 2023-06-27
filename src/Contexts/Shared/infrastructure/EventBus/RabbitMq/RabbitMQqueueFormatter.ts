@@ -1,7 +1,11 @@
+import { DomainEventSubscriber } from '../../../domain/DomainEventSubscriber';
+import { DomainEvent } from '../../../domain/DomainEvent';
+
 export class RabbitMQqueueFormatter {
   constructor(private moduleName: string) {}
 
-  format(value: string) {
+  format(subscriber: DomainEventSubscriber<DomainEvent>) {
+    const value = subscriber.constructor.name;
     const name = value
       .split(/(?=[A-Z])/)
       .join('_')

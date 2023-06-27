@@ -1,35 +1,52 @@
 import { EventBus } from '../../../domain/EventBus';
-import { DomainEventSubscriber } from '../../../domain/DomainEventSubscriber';
 import { DomainEvent } from '../../../domain/DomainEvent';
 import { RabbitMQConnection } from './RabbitMQConnection';
 import { DomainEventFailoverPublisher } from '../DomainEventFailoverPublisher';
+import { DomainEventDeserializer } from '../DomainEventDeserializer';
+import { DomainEventSubscribers } from '../DomainEventSubscribers';
+import { RabbitMQConsumerFactory } from './RabbitMQConsumerFactory';
+import { RabbitMQqueueFormatter } from './RabbitMQqueueFormatter';
+import { DomainEventJsonSerializer } from '../DomainEventJsonSerializer';
 
 export class RabbitMQEventBus implements EventBus {
-  private connection: RabbitMQConnection;
+  private readonly connection: RabbitMQConnection;
   private readonly exchange: string;
   private failoverPublisher: DomainEventFailoverPublisher;
+  private queueNameFormatter: RabbitMQqueueFormatter;
 
   constructor(params: {
     connection: RabbitMQConnection;
     exchange: string;
     failoverPublisher: DomainEventFailoverPublisher;
+    queueNameFormatter: RabbitMQqueueFormatter;
   }) {
     this.connection = params.connection;
     this.exchange = params.exchange;
     this.failoverPublisher = params.failoverPublisher;
+    this.queueNameFormatter = params.queueNameFormatter;
   }
 
-  addSubscribers(subscribers: Array<DomainEventSubscriber<DomainEvent>>): void {}
+  async addSubscribers(subscribers: DomainEventSubscribers): Promise<void> {
+    const deserializer = DomainEventDeserializer.configure(subscribers);
+    const consumerFactory = new RabbitMQConsumerFactory(deserializer, this.connection);
+
+    for (const subscriber of subscribers.items) {
+      const queueName = this.queueNameFormatter.format(subscriber);
+      const rabbitMQConsumer = consumerFactory.build(subscriber);
+
+      await this.connection.consume(queueName, rabbitMQConsumer.onMessage.bind(rabbitMQConsumer));
+    }
+  }
 
   async publish(events: Array<DomainEvent>): Promise<void> {
     for (const event of events) {
       try {
         const routingKey = event.eventName;
-        const content = this.serialize(event);
+        const content = this.toBuffer(event);
         const options = this.options(event);
 
-        await this.connection.publish({ routingKey, content, options, exchange: this.exchange });
-      } catch (e) {
+        await this.connection.publish({ exchange: this.exchange, routingKey, content, options });
+      } catch (error: any) {
         await this.failoverPublisher.publish(event);
       }
     }
@@ -43,16 +60,9 @@ export class RabbitMQEventBus implements EventBus {
     };
   }
 
-  private serialize(event: DomainEvent): Buffer {
-    const eventPrimitives = {
-      data: {
-        id: event.eventId,
-        type: event.eventName,
-        occurred_on: event.occurredOn.toISOString(),
-        attributes: event.toPrimitives()
-      }
-    };
+  private toBuffer(event: DomainEvent): Buffer {
+    const eventPrimitives = DomainEventJsonSerializer.serialize(event);
 
-    return Buffer.from(JSON.stringify(eventPrimitives));
+    return Buffer.from(eventPrimitives);
   }
 }
