@@ -20,6 +20,10 @@ jobs:
         uses: wbari/start-mongoDB@v0.2
         with:
           mongoDBVersion: ${{ matrix.mongodb-version }}
+      - name: Launch RabbitMQ
+        uses: nijel/rabbitmq-action@v1.0.0
+        with:
+          rabbitmq version: ${{ matrix.rabbitmq-version }}
       - name: npm install
         run: |
           npm install
