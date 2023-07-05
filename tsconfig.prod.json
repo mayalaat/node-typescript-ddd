@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
-  "baseUrl": ".",
-  "exclude": ["node_modules", "tests"]
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "baseUrl": "."
+  },
+  "exclude": [
+    "node_modules",
+    "tests"
+  ]
 }
