@@ -3,7 +3,6 @@ import { RabbitMQMongoClientMother } from '../__mother__/RabbitMQMongoClientMoth
 import { RabbitMQConnectionMother } from '../__mother__/RabbitMQConnectionMother';
 import { DomainEventFailoverPublisherMother } from '../__mother__/DomainEventFailoverPublisherMother';
 import { RabbitMQEventBus } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQEventBus';
-import { RabbitMQConnection } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConnection';
 import { DomainEventDummyMother } from '../__mocks__/DomainEventDummy';
 import { DomainEventFailoverPublisher } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventFailoverPublisher';
 import { RabbitMQConfigurer } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConfigurer';
@@ -11,6 +10,10 @@ import { DomainEventSubscriberDummy } from '../__mocks__/DomainEventSubscriberDu
 import { RabbitMQqueueFormatter } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQqueueFormatter';
 import { DomainEventSubscribers } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventSubscribers';
 import { CoursesCounterIncrementedDomainEventMother } from '../../../../Mooc/CoursesCounter/domain/CoursesCounterIncrementedDomainEventMother';
+import { RabbitMQConnection } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConnection';
+import { DomainEvent } from '../../../../../../src/Contexts/Shared/domain/DomainEvent';
+import { DomainEventDeserializer } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/DomainEventDeserializer';
+import { RabbitMQConsumer } from '../../../../../../src/Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConsumer';
 
 describe('RabbitMQEventBus test', () => {
   const exchange = 'domain_events';
@@ -37,7 +40,8 @@ describe('RabbitMQEventBus test', () => {
         failoverPublisher,
         connection,
         exchange,
-        queueNameFormatter
+        queueNameFormatter,
+        maxRetries: 3
       });
       const event = CoursesCounterIncrementedDomainEventMother.create();
 
@@ -58,7 +62,7 @@ describe('RabbitMQEventBus test', () => {
       connection = await RabbitMQConnectionMother.create();
       failoverPublisher = DomainEventFailoverPublisherMother.create();
 
-      configurer = new RabbitMQConfigurer(connection, queueNameFormatter);
+      configurer = new RabbitMQConfigurer(connection, queueNameFormatter, 50);
     });
 
     beforeEach(async () => {
@@ -66,9 +70,11 @@ describe('RabbitMQEventBus test', () => {
       dummySubscriber = new DomainEventSubscriberDummy();
       subscribers = new DomainEventSubscribers([dummySubscriber]);
     });
+    afterEach(async () => {
+      await cleanEnvironment();
+    });
 
     afterAll(async () => {
-      await cleanEnvironment();
       await connection.close();
     });
 
@@ -78,7 +84,8 @@ describe('RabbitMQEventBus test', () => {
         failoverPublisher,
         connection,
         exchange,
-        queueNameFormatter
+        queueNameFormatter,
+        maxRetries: 3
       });
       await eventBus.addSubscribers(subscribers);
       const event = DomainEventDummyMother.random();
@@ -88,8 +95,68 @@ describe('RabbitMQEventBus test', () => {
       await dummySubscriber.assertConsumedEvents([event]);
     });
 
+    it('should retry failed domain events', async () => {
+      dummySubscriber = DomainEventSubscriberDummy.failsFirstTime();
+      subscribers = new DomainEventSubscribers([dummySubscriber]);
+      await configurer.configure({ exchange, subscribers: [dummySubscriber] });
+      const eventBus = new RabbitMQEventBus({
+        failoverPublisher,
+        connection,
+        exchange,
+        queueNameFormatter,
+        maxRetries: 3
+      });
+      await eventBus.addSubscribers(subscribers);
+      const event = DomainEventDummyMother.random();
+
+      await eventBus.publish([event]);
+
+      await dummySubscriber.assertConsumedEvents([event]);
+    });
+
+    it('it should send events to dead letter after retry failed', async () => {
+      //fail
+      dummySubscriber = DomainEventSubscriberDummy.alwaysFails();
+      subscribers = new DomainEventSubscribers([dummySubscriber]);
+      await configurer.configure({ exchange, subscribers: [dummySubscriber] });
+      const eventBus = new RabbitMQEventBus({
+        failoverPublisher,
+        connection,
+        exchange,
+        queueNameFormatter,
+        maxRetries: 3
+      });
+      await eventBus.addSubscribers(subscribers);
+      const event = DomainEventDummyMother.random();
+
+      await eventBus.publish([event]);
+
+      await dummySubscriber.assertConsumedEvents([]);
+      assertDeadLetter([event]);
+    });
+
     async function cleanEnvironment() {
       await connection.deleteQueue(queueNameFormatter.format(dummySubscriber));
+      await connection.deleteQueue(queueNameFormatter.formatRetry(dummySubscriber));
+      await connection.deleteQueue(queueNameFormatter.formatDeadLetter(dummySubscriber));
+    }
+
+    async function assertDeadLetter(events: Array<DomainEvent>) {
+      const deadLetterQueue = queueNameFormatter.formatDeadLetter(dummySubscriber);
+      const deadLetterSubscriber = new DomainEventSubscriberDummy();
+      const deadLetterSubscribers = new DomainEventSubscribers([dummySubscriber]);
+      const deserializer = DomainEventDeserializer.configure(deadLetterSubscribers);
+      const consumer = new RabbitMQConsumer({
+        subscriber: deadLetterSubscriber,
+        deserializer,
+        connection,
+        maxRetries: 3,
+        queueName: deadLetterQueue,
+        exchange
+      });
+      await connection.consume(deadLetterQueue, consumer.onMessage.bind(consumer));
+
+      await deadLetterSubscriber.assertConsumedEvents(events);
     }
   });
 });

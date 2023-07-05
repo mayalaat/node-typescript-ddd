@@ -5,11 +5,28 @@ import { DomainEventDeserializer } from '../DomainEventDeserializer';
 import { RabbitMQConnection } from './RabbitMQConnection';
 
 export class RabbitMQConsumer {
-  constructor(
-    private subscriber: DomainEventSubscriber<DomainEvent>,
-    private deserializer: DomainEventDeserializer,
-    private connection: RabbitMQConnection
-  ) {}
+  private subscriber: DomainEventSubscriber<DomainEvent>;
+  private deserializer: DomainEventDeserializer;
+  private connection: RabbitMQConnection;
+  private readonly queueName: string;
+  private readonly exchange: string;
+  private readonly maxRetries: Number;
+
+  constructor(params: {
+    subscriber: DomainEventSubscriber<DomainEvent>;
+    deserializer: DomainEventDeserializer;
+    connection: RabbitMQConnection;
+    queueName: string;
+    exchange: string;
+    maxRetries: Number;
+  }) {
+    this.subscriber = params.subscriber;
+    this.deserializer = params.deserializer;
+    this.connection = params.connection;
+    this.queueName = params.queueName;
+    this.exchange = params.exchange;
+    this.maxRetries = params.maxRetries;
+  }
 
   async onMessage(message: ConsumeMessage) {
     const content = message.content.toString();
@@ -17,9 +34,38 @@ export class RabbitMQConsumer {
 
     try {
       await this.subscriber.on(domainEvent);
-      this.connection.ack(message);
     } catch (error) {
-      this.connection.noAck(message);
+      await this.handleError(message);
+    } finally {
+      this.connection.ack(message);
     }
+  }
+
+  private async handleError(message: ConsumeMessage) {
+    if (this.hasBeenRedeliveredTooMuch(message)) {
+      await this.deadLetter(message);
+    } else {
+      await this.retry(message);
+    }
+  }
+
+  private async retry(message: ConsumeMessage) {
+    await this.connection.retry(message, this.queueName, this.exchange);
+  }
+
+  private async deadLetter(message: ConsumeMessage) {
+    await this.connection.deadLetter(message, this.queueName, this.exchange);
+  }
+
+  private hasBeenRedeliveredTooMuch(message: ConsumeMessage) {
+    if (this.hasBeenRedelivered(message)) {
+      const count = parseInt(message.properties.headers['redelivery_count']);
+      return count >= this.maxRetries;
+    }
+    return false;
+  }
+
+  private hasBeenRedelivered(message: ConsumeMessage) {
+    return message.properties.headers['redelivery_count'] !== undefined;
   }
 }
