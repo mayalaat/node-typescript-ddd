@@ -115,7 +115,6 @@ describe('RabbitMQEventBus test', () => {
     });
 
     it('it should send events to dead letter after retry failed', async () => {
-      //fail
       dummySubscriber = DomainEventSubscriberDummy.alwaysFails();
       subscribers = new DomainEventSubscribers([dummySubscriber]);
       await configurer.configure({ exchange, subscribers: [dummySubscriber] });
@@ -132,7 +131,7 @@ describe('RabbitMQEventBus test', () => {
       await eventBus.publish([event]);
 
       await dummySubscriber.assertConsumedEvents([]);
-      assertDeadLetter([event]);
+      await assertDeadLetter([event]);
     });
 
     async function cleanEnvironment() {
