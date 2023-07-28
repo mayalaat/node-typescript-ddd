@@ -29,8 +29,12 @@ services:
     arguments: [ "@Mooc.Shared.RabbitMQConnection", "@Mooc.Shared.RabbitMQQueueFormatter" ]
 
   Mooc.shared.EventBus:
-    class: ../../../../../../Contexts/Shared/infrastructure/EventBus/InMemory/InMemoryAsyncEventBus
-    arguments: [ ]
+    class: ../../../../../../Contexts/Shared/infrastructure/EventBus/RabbitMq/RabbitMQConsumerFactory
+    arguments: [
+      '@Mooc.shared.EventBus.DomainEventDeserializer',
+      '@Mooc.Shared.RabbitMQConnection',
+      '@Mooc.Shared.RabbitMQqueueFormatter'
+    ]
 
   Mooc.shared.EventBus.DomainEventDeserializer:
     class: ../../../../../../Contexts/Shared/infrastructure/EventBus/DomainEventDeserializer

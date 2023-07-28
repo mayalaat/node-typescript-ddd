@@ -12,7 +12,12 @@ export class RabbitMQConfigurer {
   ) {}
 
   async configure(params: { exchange: string; subscribers: Array<DomainEventSubscriber<DomainEvent>> }): Promise<void> {
+    const retryExchange = RabbitMQExchangeNameFormatter.retry(params.exchange);
+    const deadLetterExchange = RabbitMQExchangeNameFormatter.deadLetter(params.exchange);
+
     await this.connection.exchange({ name: params.exchange });
+    await this.connection.exchange({ name: retryExchange });
+    await this.connection.exchange({ name: deadLetterExchange });
 
     for (const subscriber of params.subscribers) {
       await this.addQueue(subscriber, params.exchange);
