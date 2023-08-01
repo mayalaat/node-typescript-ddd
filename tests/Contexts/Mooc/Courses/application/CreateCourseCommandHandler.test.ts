@@ -1,40 +1,42 @@
-import { CourseCreator } from '../../../../../src/Contexts/Mooc/Courses/application/CourseCreator';
 import { CourseRepositoryMock } from '../__mocks__/CourseRepositoryMock';
-import { CourseCreatorRequestMother } from './CourseCreatorRequestMother';
+import { CreateCourseCommandMother } from './CreateCourseCommandMother';
 import { CourseMother } from '../domain/CourseMother';
 import { CourseNameLengthExceeded } from '../../../../../src/Contexts/Mooc/Courses/domain/CourseNameLengthExceeded';
 import EventBusMock from '../__mocks__/EventBusMock';
 import { CourseCreatedDomainEventMother } from '../domain/CourseCreatedDomainEventMother';
+import { CourseCreator } from '../../../../../src/Contexts/Mooc/Courses/application/CourseCreator';
+import { CreateCourseCommandHandler } from '../../../../../src/Contexts/Mooc/Courses/application/CreateCourseCommandHandler';
 
 let repository: CourseRepositoryMock;
 let creator: CourseCreator;
-
-const eventBus = new EventBusMock();
+let handler: CreateCourseCommandHandler;
+let eventBus: EventBusMock;
 
 beforeEach(() => {
   repository = new CourseRepositoryMock();
+  eventBus = new EventBusMock();
   creator = new CourseCreator(repository, eventBus);
+  handler = new CreateCourseCommandHandler(creator);
 });
 
-describe('CourseCreator', () => {
+describe('CreateCourseCommandHandler', () => {
   it('should create a valid course', async () => {
-    const request = CourseCreatorRequestMother.random();
-    const course = CourseMother.fromRequest(request);
+    const command = CreateCourseCommandMother.random();
+    const course = CourseMother.fromCommand(command);
     const domainEvent = CourseCreatedDomainEventMother.fromCourse(course);
 
-    await creator.run(request);
+    await handler.handle(command);
 
     repository.assertSaveHaveBeenCalledWith(course);
     eventBus.assertLastPublishedEventIs(domainEvent);
   });
 
-  it('should throw error if course name length is exceeded', () => {
+  it('should throw error if course name length is exceeded', async () => {
     expect(() => {
-      const request = CourseCreatorRequestMother.invalidRequest();
+      const command = CreateCourseCommandMother.invalidRequest();
+      const course = CourseMother.fromCommand(command);
 
-      const course = CourseMother.fromRequest(request);
-
-      creator.run(request);
+      handler.handle(command);
 
       repository.assertSaveHaveBeenCalledWith(course);
     }).toThrow(CourseNameLengthExceeded);
