@@ -21,3 +21,9 @@ services:
     tags:
       - { name: 'domainEventSubscriber' }
 
+  Mooc.CoursesCounter.FindCoursesCounterQueryHandler:
+    class: ../../../../../../Contexts/Mooc/CoursesCounter/application/Find/FindCoursesCounterQueryHandler
+    arguments: [ '@Mooc.CoursesCounter.CoursesCounterFinder' ]
+    tags:
+      - { name: 'queryHandler' }
+
