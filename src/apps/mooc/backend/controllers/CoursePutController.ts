@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { Controller } from './Controller';
-import { CommandBus } from '../../../../Contexts/Shared/domain/CommandBus';
+import { CommandBus } from '../../../../Contexts/Shared/domain/command/CommandBus';
 import { CreateCourseCommand } from '../../../../Contexts/Mooc/Courses/domain/CreateCourseCommand';
 
 export class CoursePutController implements Controller {

@@ -1,6 +1,6 @@
-import { CommandHandler } from '../../../Shared/domain/CommandHandler';
+import { CommandHandler } from '../../../Shared/domain/command/CommandHandler';
 import { CreateCourseCommand } from '../domain/CreateCourseCommand';
-import { Command } from '../../../Shared/domain/Command';
+import { Command } from '../../../Shared/domain/command/Command';
 import { CourseCreator } from './CourseCreator';
 import { CourseId } from '../../Shared/domain/Courses/CourseId';
 import { CourseDuration } from '../domain/CourseDuration';
