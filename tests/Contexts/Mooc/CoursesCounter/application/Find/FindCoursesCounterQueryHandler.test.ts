@@ -1,31 +1,32 @@
 import { CoursesCounterFinder } from '../../../../../../src/Contexts/Mooc/CoursesCounter/application/Find/CoursesCounterFinder';
 import { CoursesCounterRepositoryMock } from '../../__mocks__/CoursesCounterRepositoryMock';
 import { CoursesCounterMother } from '../../domain/CoursesCounterMother';
-import { CoursesCounterResponseMother } from './CoursesCounterResponseMother';
 import { CoursesCounterNotExist } from '../../../../../../src/Contexts/Mooc/CoursesCounter/domain/CoursesCounterNotExist';
+import { FindCoursesCounterQuery } from '../../../../../../src/Contexts/Mooc/CoursesCounter/application/Find/FindCoursesCounterQuery';
+import { FindCoursesCounterQueryHandler } from '../../../../../../src/Contexts/Mooc/CoursesCounter/application/Find/FindCoursesCounterQueryHandler';
 
-describe('CoursesCounter Finder', () => {
-  let finder: CoursesCounterFinder;
+describe('FindCoursesCounterQueryHandler', () => {
   let repository: CoursesCounterRepositoryMock;
+  let finder: CoursesCounterFinder;
+  let handler: FindCoursesCounterQueryHandler;
 
   beforeEach(() => {
     repository = new CoursesCounterRepositoryMock();
     finder = new CoursesCounterFinder(repository);
+    handler = new FindCoursesCounterQueryHandler(finder);
   });
 
   it('should find an existing courses counter', async () => {
     const counter = CoursesCounterMother.random();
-    const expected = CoursesCounterResponseMother.create(counter.total);
-
     repository.returnOnSearch(counter);
 
-    const received = await finder.run();
+    const response = await handler.handle(new FindCoursesCounterQuery());
 
     repository.assertSearch();
-    expect(expected).toEqual(received);
+    expect(counter.total.value).toEqual(response.total);
   });
 
   it('should throw an exception when courses counter does not exists', async () => {
-    await expect(finder.run()).rejects.toBeInstanceOf(CoursesCounterNotExist);
+    await expect(handler.handle(new FindCoursesCounterQuery())).rejects.toBeInstanceOf(CoursesCounterNotExist);
   });
 });
