@@ -1,9 +1,5 @@
 services:
 
-  Mooc.courses.CourseRepository:
-    class: ../../../../../../Contexts/Mooc/Courses/infrastructure/persistence/MongoCourseRepository
-    arguments: [ "@Mooc.shared.ConnectionManager" ]
-
   Mooc.Courses.application.CourseCreator:
     class: ../../../../../../Contexts/Mooc/Courses/application/CourseCreator
     arguments: [ '@Mooc.Courses.domain.CourseRepository',  '@Mooc.shared.EventBus' ]
@@ -11,3 +7,9 @@ services:
   Mooc.Courses.domain.CourseRepository:
     class: ../../../../../../Contexts/Mooc/Courses/infrastructure/persistence/MongoCourseRepository
     arguments: [ '@Mooc.shared.ConnectionManager' ]
+
+  Mooc.Courses.CreateCourseCommandHandler:
+    class: ../../../../../../Contexts/Mooc/Courses/application/CreateCourseCommandHandler
+    arguments: [ '@Mooc.Courses.application.CourseCreator' ]
+    tags:
+      - { name: 'commandHandler' }

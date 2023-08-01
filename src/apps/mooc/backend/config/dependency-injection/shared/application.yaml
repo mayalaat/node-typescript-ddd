@@ -44,6 +44,6 @@ services:
     class: ../../../../../../Contexts/Shared/infrastructure/CommandBus/CommandHandlers
     arguments: [ '!tagged commandHandler' ]
 
-  Mooc.Shared.CommandBus:
+  Mooc.Shared.domain.CommandBus:
     class: ../../../../../../Contexts/Shared/infrastructure/CommandBus/InMemoryCommandBus
     arguments: [ '@Mooc.Shared.CommandHandlers' ]
